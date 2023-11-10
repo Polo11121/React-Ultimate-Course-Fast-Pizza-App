@@ -1,15 +1,8 @@
-const API_URL = "https://react-fast-pizza-api.onrender.com/api";
+import { isValidPhone } from "@/utils/helpers";
+import { Order, Pizza, NewOrder } from "@/utils/types";
+import { redirect } from "react-router-dom";
 
-type Order = {
-  id: string;
-  name: string;
-  phone: string;
-  address: string;
-  pizzas: string[];
-  status: string;
-  total: number;
-  createdAt: string;
-};
+const API_URL = "https://react-fast-pizza-api.onrender.com/api";
 
 export const getMenu = async () => {
   const res = await fetch(`${API_URL}/menu`);
@@ -18,7 +11,7 @@ export const getMenu = async () => {
     throw Error("Failed getting menu");
   }
 
-  const { data } = await res.json();
+  const { data }: { data: Pizza[] } = await res.json();
 
   return data;
 };
@@ -30,12 +23,12 @@ export const getOrder = async (id: string) => {
     throw Error(`Couldn't find order #${id}`);
   }
 
-  const { data } = await res.json();
+  const { data }: { data: Order } = await res.json();
 
   return data;
 };
 
-export const createOrder = async (newOrder: Order) => {
+export const createOrder = async (newOrder: NewOrder) => {
   try {
     const res = await fetch(`${API_URL}/order`, {
       method: "POST",
@@ -72,5 +65,48 @@ export const updateOrder = async (id: string, updateObj: Order) => {
     }
   } catch (err) {
     throw Error("Failed updating your order");
+  }
+};
+
+export const newOrderAction = async ({ request }: { request: Request }) => {
+  const formData = await request.formData();
+  const data = Object.fromEntries(formData) as Record<string, string>;
+
+  const orderData = {
+    ...data,
+    cart: JSON.parse(data.cart),
+    priority: data.priority === "on",
+  } as NewOrder;
+
+  const errors: Record<string, string> = {};
+
+  if (!isValidPhone(orderData.phone)) {
+    errors["phone"] = "Invalid phone number";
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return errors;
+  }
+
+  const newOrder = await createOrder(orderData);
+
+  return redirect(`/order/${newOrder.id}`);
+};
+
+export const menuLoader = async () => {
+  const menu = await getMenu();
+
+  return menu;
+};
+
+export const orderLoader = async ({
+  params: { orderId },
+}: {
+  params: { orderId?: string };
+}) => {
+  if (orderId) {
+    const order = await getOrder(orderId);
+
+    return order;
   }
 };

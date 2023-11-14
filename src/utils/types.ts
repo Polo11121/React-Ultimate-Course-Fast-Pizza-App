@@ -25,6 +25,7 @@ export type Order = {
   position: string;
   orderPrice: number;
   priorityPrice: number;
+  status: string;
 };
 
 export type Pizza = {

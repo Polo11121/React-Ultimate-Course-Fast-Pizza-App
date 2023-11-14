@@ -8,11 +8,13 @@ export const AppLayout = () => {
   return state === "loading" ? (
     <Loader />
   ) : (
-    <div className="layout">
+    <div className="grid h-screen grid-rows-[auto_1fr_auto]">
       <Header />
-      <main>
-        <Outlet />
-      </main>
+      <div className="overflow-y-auto">
+        <main className="mx-auto max-w-3xl">
+          <Outlet />
+        </main>
+      </div>
       <CartOverview />
     </div>
   );

@@ -6,7 +6,7 @@ export const Menu = () => {
   const menu = useLoaderData() as Pizza[];
 
   return (
-    <ul>
+    <ul className="divide-y divide-stone-200 px-2">
       {menu.map((item) => (
         <MenuItem key={item.id} pizza={item} />
       ))}

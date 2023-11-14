@@ -8,7 +8,12 @@ import { AppLayout, Home, NotFound } from "@/ui";
 import { Menu } from "@/features/menu";
 import { Cart } from "@/features/cart";
 import { CreateOrder, Order } from "@/features/order";
-import { menuLoader, orderLoader, newOrderAction } from "@/services";
+import {
+  menuLoader,
+  orderLoader,
+  newOrderAction,
+  updateOrderAction,
+} from "@/services";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -26,9 +31,14 @@ const router = createBrowserRouter(
         element={<CreateOrder />}
         action={newOrderAction}
       />
-      <Route path="order/:orderId" element={<Order />} loader={orderLoader} />
-    </Route>
-  )
+      <Route
+        path="order/:orderId"
+        element={<Order />}
+        loader={orderLoader}
+        action={updateOrderAction}
+      />
+    </Route>,
+  ),
 );
 
 export const App = () => <RouterProvider router={router} />;

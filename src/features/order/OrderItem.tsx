@@ -6,15 +6,15 @@ type OrderItemProps = {
     name: string;
     totalPrice: number;
   };
-  // isLoadingIngredients: boolean;
-  // ingredients: string[];
+  isLoadingIngredients: boolean;
+  ingredients?: string[];
 };
 
 export const OrderItem = ({
   item,
-}: // isLoadingIngredients,
-// ingredients,
-OrderItemProps) => {
+  ingredients,
+  isLoadingIngredients,
+}: OrderItemProps) => {
   const { quantity, name, totalPrice } = item;
 
   return (
@@ -25,6 +25,9 @@ OrderItemProps) => {
         </p>
         <p className="font-bold">{formatCurrency(totalPrice)}</p>
       </div>
+      <p className="text-sm capitalize italic">
+        {isLoadingIngredients ? "Loading..." : ingredients?.join(", ")}
+      </p>
     </li>
   );
 };

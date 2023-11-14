@@ -1,5 +1,7 @@
-import { Button } from "@/ui";
+import { useAppSelector } from "@/store";
+import { DeleteItem, UpdateItemQuantity } from "@/ui";
 import { formatCurrency } from "@/utils/helpers";
+import { getPizzaQuantity } from "@/features/cart/cartSlice";
 
 type CartItemProps = {
   item: {
@@ -11,7 +13,8 @@ type CartItemProps = {
 };
 
 export const CartItem = ({ item }: CartItemProps) => {
-  const { name, quantity, totalPrice } = item;
+  const { name, quantity, totalPrice, pizzaId } = item;
+  const currentQuantity = useAppSelector(getPizzaQuantity(pizzaId));
 
   return (
     <li className="py-3 sm:flex sm:items-center sm:justify-between">
@@ -20,7 +23,11 @@ export const CartItem = ({ item }: CartItemProps) => {
       </p>
       <div className="flex items-center justify-between sm:gap-6">
         <p className="text-sm font-bold">{formatCurrency(totalPrice)}</p>
-        <Button className="px-4 text-xs md:px-5 md:py-2.5">Remove</Button>
+        <UpdateItemQuantity
+          pizzaId={pizzaId}
+          currentQuantity={currentQuantity}
+        />
+        <DeleteItem pizzaId={pizzaId} />
       </div>
     </li>
   );

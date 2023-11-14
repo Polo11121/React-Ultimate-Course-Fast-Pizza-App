@@ -1,9 +1,11 @@
+import { useEffect } from "react";
 import { calcMinutesLeft, formatCurrency, formatDate } from "@/utils/helpers";
-import { Order as OrderType } from "@/utils/types";
-import { useLoaderData } from "react-router-dom";
-import { OrderItem } from "@/features/order";
+import { Order as OrderType, Pizza } from "@/utils/types";
+import { useFetcher, useLoaderData } from "react-router-dom";
+import { OrderItem, UpdateOrder } from "@/features/order";
 
 export const Order = () => {
+  const order = useLoaderData() as OrderType;
   const {
     priority,
     priorityPrice,
@@ -12,8 +14,15 @@ export const Order = () => {
     id,
     status,
     cart,
-  } = useLoaderData() as OrderType;
+  } = order;
+  const fetcher = useFetcher<Pizza[]>();
   const deliveryIn = calcMinutesLeft(estimatedDelivery);
+
+  useEffect(() => {
+    if (!fetcher.data && fetcher.state === "idle") {
+      fetcher.load("/menu");
+    }
+  }, [fetcher]);
 
   return (
     <div className="space-y-8 px-4 py-6">
@@ -42,7 +51,15 @@ export const Order = () => {
       </div>
       <ul className="divide-y divide-stone-200 border-b border-t">
         {cart.map((item) => (
-          <OrderItem item={item} key={item.pizzaId} />
+          <OrderItem
+            item={item}
+            key={item.pizzaId}
+            ingredients={
+              fetcher.data?.find((pizza) => pizza.id === item.pizzaId)
+                ?.ingredients || []
+            }
+            isLoadingIngredients={fetcher.state === "loading" || !fetcher.data}
+          />
         ))}
       </ul>
       <div className="space-y-2 bg-stone-200 px-6 py-5">
@@ -58,6 +75,7 @@ export const Order = () => {
           To pay on delivery: {formatCurrency(orderPrice + priorityPrice)}
         </p>
       </div>
+      {!priority && <UpdateOrder order={order} />}
     </div>
   );
 };

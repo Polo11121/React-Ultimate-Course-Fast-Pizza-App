@@ -8,7 +8,7 @@ type ButtonProps = {
 export const Button = ({ className, to, onClick, ...props }: ButtonProps) => {
   const navigate = useNavigate();
 
-  const clickHandler = () => (to ? navigate(to) : onClick);
+  const clickHandler = to ? () => navigate(to) : onClick;
 
   return (
     <button

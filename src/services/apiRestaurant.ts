@@ -1,6 +1,8 @@
+import { clearCart } from "@/features/cart/cartSlice";
+import { store } from "@/store";
 import { isValidPhone } from "@/utils/helpers";
 import { Order, Pizza, NewOrder } from "@/utils/types";
-import { redirect } from "react-router-dom";
+import { Params, redirect } from "react-router-dom";
 
 const API_URL = "https://react-fast-pizza-api.onrender.com/api";
 
@@ -90,7 +92,17 @@ export const newOrderAction = async ({ request }: { request: Request }) => {
 
   const newOrder = await createOrder(orderData);
 
+  store.dispatch(clearCart());
+
   return redirect(`/order/${newOrder.id}`);
+};
+
+export const updateOrderAction = async ({ params }: { params: Params }) => {
+  const data = { priority: true } as Order;
+
+  await updateOrder(params.orderId as string, data);
+
+  return null;
 };
 
 export const menuLoader = async () => {

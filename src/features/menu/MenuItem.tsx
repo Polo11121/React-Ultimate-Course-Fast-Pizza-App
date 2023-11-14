@@ -1,6 +1,8 @@
-import { Button } from "@/ui";
+import { useAppDispatch, useAppSelector } from "@/store";
+import { Button, DeleteItem, UpdateItemQuantity } from "@/ui";
 import { formatCurrency } from "@/utils/helpers";
 import { twMerge } from "tailwind-merge";
+import { addToCart, getPizzaQuantity } from "@/features/cart/cartSlice";
 
 type MenuItemProps = {
   pizza: {
@@ -14,7 +16,30 @@ type MenuItemProps = {
 };
 
 export const MenuItem = ({ pizza }: MenuItemProps) => {
-  const { name, unitPrice, ingredients, soldOut, imageUrl } = pizza;
+  const {
+    name,
+    unitPrice,
+    ingredients,
+    soldOut,
+    imageUrl,
+    id: pizzaId,
+  } = pizza;
+  const dispatch = useAppDispatch();
+  const currentQuantity = useAppSelector(getPizzaQuantity(pizzaId));
+
+  const isInCart = currentQuantity > 0;
+
+  const addToCartHandler = () => {
+    if (soldOut) return;
+
+    dispatch(
+      addToCart({
+        pizzaId,
+        name,
+        unitPrice,
+      }),
+    );
+  };
 
   return (
     <li className="flex gap-4 py-2">
@@ -32,9 +57,23 @@ export const MenuItem = ({ pizza }: MenuItemProps) => {
           <p className="text-sm font-medium uppercase text-stone-500">
             {!soldOut ? formatCurrency(unitPrice) : "Sold out"}
           </p>
-          <Button className="px-4 text-xs md:px-5 md:py-2.5">
-            Add to cart
-          </Button>
+          {isInCart && (
+            <div className="flex items-center gap-3 sm:gap-8">
+              <UpdateItemQuantity
+                currentQuantity={currentQuantity}
+                pizzaId={pizzaId}
+              />
+              <DeleteItem pizzaId={pizzaId} />
+            </div>
+          )}
+          {!soldOut && !isInCart && (
+            <Button
+              onClick={addToCartHandler}
+              className="px-4 text-xs md:px-5 md:py-2.5"
+            >
+              Add to cart
+            </Button>
+          )}
         </div>
       </div>
     </li>

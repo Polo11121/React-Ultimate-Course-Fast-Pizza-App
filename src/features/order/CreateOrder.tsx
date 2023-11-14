@@ -1,41 +1,42 @@
+import { useState, MouseEvent } from "react";
+import { useAppDispatch, useAppSelector } from "@/store";
 import { Button, Input } from "@/ui";
-import { useState } from "react";
 import { Form, useActionData, useNavigation } from "react-router-dom";
-
-const fakeCart = [
-  {
-    pizzaId: 12,
-    name: "Mediterranean",
-    quantity: 2,
-    unitPrice: 16,
-    totalPrice: 32,
-  },
-  {
-    pizzaId: 6,
-    name: "Vegetale",
-    quantity: 1,
-    unitPrice: 13,
-    totalPrice: 13,
-  },
-  {
-    pizzaId: 11,
-    name: "Spinach and Mushroom",
-    quantity: 1,
-    unitPrice: 15,
-    totalPrice: 15,
-  },
-];
+import { getCart, getTotalCartPrice } from "@/features/cart/cartSlice";
+import { EmptyCart } from "@/features/cart";
+import { formatCurrency } from "@/utils/helpers";
+import { fetchAddress } from "@/features/user/userSlice";
 
 export const CreateOrder = () => {
   const [withPriority, setWithPriority] = useState(false);
+  const { username, address, position, status, error } = useAppSelector(
+    (state) => state.user,
+  );
   const { state } = useNavigation();
   const formErrors = useActionData() as Record<string, string>;
-  const cart = fakeCart;
+  const cart = useAppSelector(getCart);
+  const totalCartPrice = useAppSelector(getTotalCartPrice);
+  const dispatch = useAppDispatch();
+
+  const priorityPrice = withPriority ? totalCartPrice * 0.25 : 0;
+  const totalPrice = totalCartPrice + priorityPrice;
   const isSubmitting = state === "submitting";
+  const isLoading = status === "loading";
 
   const changePriorityHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     setWithPriority(e.target.checked);
   };
+
+  const getMyPositionHandler = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    dispatch(fetchAddress());
+  };
+
+  if (!cart.length) {
+    return <EmptyCart />;
+  }
 
   return (
     <div className="px-4 py-6">
@@ -43,7 +44,13 @@ export const CreateOrder = () => {
       <Form method="POST">
         <div className="mb-5 flex flex-col sm:flex-row sm:items-center">
           <label className="sm:basis-40">First Name</label>
-          <Input className="flex-1" type="text" name="customer" required />
+          <Input
+            defaultValue={username}
+            className="flex-1"
+            type="text"
+            name="customer"
+            required
+          />
         </div>
         <div className="mb-5 flex flex-col sm:flex-row sm:items-center">
           <label className="sm:basis-40">Phone number</label>
@@ -54,10 +61,27 @@ export const CreateOrder = () => {
             )}
           </div>
         </div>
-        <div className="mb-5 flex flex-col sm:flex-row sm:items-center">
+        <div className=" mb-5 flex flex-col sm:flex-row sm:items-center">
           <label className="sm:basis-40">Address</label>
-          <div className="flex-1">
-            <Input className="w-full" type="text" name="address" required />
+          <div className="relative flex-1">
+            <Input
+              className="w-full"
+              type="text"
+              name="address"
+              defaultValue={address}
+              required
+              disabled={isLoading}
+            />
+            {!position && (
+              <Button
+                className="absolute right-0 px-4 py-3 text-xs md:px-5 md:py-4"
+                disabled={isLoading}
+                onClick={getMyPositionHandler}
+              >
+                Get my position
+              </Button>
+            )}
+            {error && <p className="text-sm text-red-500">{error}</p>}
           </div>
         </div>
         <div className="mb-12 flex items-center gap-5">
@@ -74,8 +98,18 @@ export const CreateOrder = () => {
         </div>
         <div>
           <input type="hidden" name="cart" value={JSON.stringify(cart)} />
-          <Button disabled={isSubmitting}>
-            {isSubmitting ? "Placing order..." : "Order now"}
+          <input
+            type="hidden"
+            name="position"
+            value={
+              position ? `${position?.latitude}, ${position?.longitude}` : ""
+            }
+          />
+
+          <Button disabled={isSubmitting || isLoading}>
+            {isSubmitting
+              ? "Placing order..."
+              : `Order now from ${formatCurrency(totalPrice)}`}
           </Button>
         </div>
       </Form>
